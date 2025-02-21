@@ -1,4 +1,4 @@
-package parcial;
+package practica;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

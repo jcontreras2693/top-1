@@ -1,14 +1,14 @@
-package parcial;
+package practica;
 
-import java.net.*;
 import java.io.*;
+import java.net.*;
 import java.io.FileReader;
-
 
 public class Facade {
 
     private static final String USER_AGENT = "Mozilla/5.0";
     private static final String GET_URL = "http://localhost:37000";
+
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = null;
@@ -18,7 +18,9 @@ public class Facade {
             System.err.println("Could not listen on port: 36000.");
             System.exit(1);
         }
+
         boolean running = true;
+
         while (running) {
             Socket clientSocket = null;
             try {
@@ -33,28 +35,28 @@ public class Facade {
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(clientSocket.getInputStream()));
             String inputLine, outputLine;
+
             boolean isFirstLine = true;
             String firstLine = "";
+
             while ((inputLine = in.readLine()) != null) {
                 //System.out.println("Recibí: " + inputLine);
                 if (isFirstLine) {
                     firstLine = inputLine;
                     isFirstLine = false;
                 }
-                if (!in.ready()) {
-                    break;
-                }
+                if (!in.ready()) {break; }
             }
+
             System.out.println(firstLine);
 
-            String path = firstLine.split(" ")[1];
             String method = firstLine.split(" ")[0];
-
+            String path = firstLine.split(" ")[1];
 
             if (path.startsWith("/cliente")){
                 outputLine = readStaticFile();
-            } else if (path.startsWith("/consulta")) {
-                outputLine = connection(path, method);
+            } else if (path.startsWith("/consulta")){
+                outputLine = connection(method, path);
             } else {
                 outputLine = "HTTP/1.1 400 ERROR\r\n"
                         + "Content-Type: text/html\r\n"
@@ -66,6 +68,7 @@ public class Facade {
             in.close();
             clientSocket.close();
         }
+
         serverSocket.close();
     }
 
@@ -77,25 +80,22 @@ public class Facade {
             response.append(inputLine + "\n");
         }
         in.close();
-        //System.out.println(response.toString());
         return "HTTP/1.1 200 OK\r\n"
                 + "Content-Type: text/html\r\n"
                 + "\r\n"
                 +response.toString();
     }
 
-
-    public static String connection(String path, String method) throws IOException {
+    public static String connection(String method, String path) throws IOException {
         URL obj = new URL(GET_URL + path.replace("consulta", "compreflex"));
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod(method);
+        con.setRequestMethod("GET");
         con.setRequestProperty("User-Agent", USER_AGENT);
-//The following invocation perform the connection implicitly before getting the code
+
         int responseCode = con.getResponseCode();
         System.out.println("GET Response Code :: " + responseCode);
-        if (responseCode == HttpURLConnection.HTTP_OK) { // success
-            BufferedReader in = new BufferedReader(new InputStreamReader(
-                    con.getInputStream()));
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;
             StringBuffer response = new StringBuffer();
             while ((inputLine = in.readLine()) != null) {
@@ -106,8 +106,8 @@ public class Facade {
             return "HTTP/1.1 200 OK\r\n"
                     + "Content-Type: text/html\r\n"
                     + "\r\n"
-                    +response.toString();
-// print result
+                    + response.toString();
+
         } else {
             System.out.println("GET request not worked");
             return "HTTP/1.1 400 ERROR\r\n"
